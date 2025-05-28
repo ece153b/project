@@ -24,9 +24,8 @@ int main(void) {
 	USART_Init(USART2);//TODO
 	
 	printf("Program Starts.\r\n");
-	while(1) {
-		//TODO
-	}
+	setDire(1);
+	while(1){}
 }
 
 
