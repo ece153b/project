@@ -21,21 +21,47 @@ Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.2.0.0
 Dialog DLL:      TCM.DLL V1.56.4.0
  
 <h2>Project:</h2>
-C:\Users\vseenivasan\Downloads\Template_Project\Template_Project\Part_A\project.uvprojx
-Project File Date:  05/27/2025
+C:\Users\adenjo\Downloads\project-main\project-main\Part_A\project.uvprojx
+Project File Date:  05/28/2025
 
 <h2>Output:</h2>
 *** Using Compiler 'V6.21', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'Target 1'
-src/main.c(17): warning: unused variable 'ch' [-Wunused-variable]
-   17 |         char ch;
+src/main.c(16): warning: no previous prototype for function 'Init_USARTx' [-Wmissing-prototypes]
+   16 | void Init_USARTx(int x) {
+      |      ^
+src/main.c(16): note: declare 'static' if the function is not intended to be used outside of this translation unit
+   16 | void Init_USARTx(int x) {
+      | ^
+      | static 
+src/main.c(45): warning: mixing declarations and code is incompatible with standards before C99 [-Wdeclaration-after-statement]
+   45 |         char rxByte;
+      |              ^
+src/main.c(31): warning: unused variable 'ch' [-Wunused-variable]
+   31 |         char ch;
       |              ^~
-1 warning generated.
+3 warnings generated.
 compiling main.c...
+src/UART.c(111): warning: comparison of integers of different signs: 'int' and 'uint32_t' (aka 'unsigned int') [-Wsign-compare]
+  111 |         for (i = 0; i < nBytes; i++) {
+      |                     ~ ^ ~~~~~~
+src/UART.c(114): warning: unsafe buffer access [-Wunsafe-buffer-usage]
+  114 |                 USARTx->TDR = buffer[i] & 0xFF;
+      |                               ^~~~~~
+2 warnings generated.
+compiling UART.c...
+src/UART_printf.c(14): warning: unused parameter 'f' [-Wunused-parameter]
+   14 | int fputc(int ch, FILE *f) { 
+      |                         ^
+src/UART_printf.c(23): warning: unused parameter 'f' [-Wunused-parameter]
+   23 | int fgetc(FILE *f) {  
+      |                 ^
+2 warnings generated.
+compiling UART_printf.c...
 linking...
-Program Size: Code=8696 RO-data=1012 RW-data=0 ZI-data=1736  
+Program Size: Code=16752 RO-data=1124 RW-data=0 ZI-data=1816  
 FromELF: creating hex file...
-".\Objects\project.axf" - 0 Error(s), 1 Warning(s).
+".\Objects\project.axf" - 0 Error(s), 7 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -58,7 +84,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE@5.6.0
-Build Time Elapsed:  00:00:00
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>

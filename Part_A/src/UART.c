@@ -112,7 +112,8 @@ void USART_Write(USART_TypeDef * USARTx, uint8_t *buffer, uint32_t nBytes) {
 		while (!(USARTx->ISR & USART_ISR_TXE));   	// wait until TXE (TX empty) bit is set
 		// Writing USART_DR automatically clears the TXE flag 	
 		USARTx->TDR = buffer[i] & 0xFF;
-		USART_Delay(300);
+		USART_Delay(300); //For terminal
+		//USART_Delay(40000); //For Bluetooth
 	}
 	while (!(USARTx->ISR & USART_ISR_TC));   		  // wait until TC bit is set
 	USARTx->ISR &= ~USART_ISR_TC;
