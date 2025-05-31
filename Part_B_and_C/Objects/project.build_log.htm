@@ -21,13 +21,31 @@ Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.2.0.0
 Dialog DLL:      TCM.DLL V1.56.4.0
  
 <h2>Project:</h2>
-C:\Users\vseenivasan\Downloads\project-main\project-main\Part_A\project.uvprojx
+C:\Users\vseenivasan\Downloads\project-main\project-main\Part_B_and_C\project.uvprojx
 Project File Date:  05/30/2025
 
 <h2>Output:</h2>
 *** Using Compiler 'V6.21', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'Target 1'
-".\Objects\project.axf" - 0 Error(s), 0 Warning(s).
+src/main.c(23): warning: no previous prototype for function 'Init_USARTx' [-Wmissing-prototypes]
+   23 | void Init_USARTx(int x) {
+      |      ^
+src/main.c(23): note: declare 'static' if the function is not intended to be used outside of this translation unit
+   23 | void Init_USARTx(int x) {
+      | ^
+      | static 
+src/main.c(37): warning: unused parameter 'inputs' [-Wunused-parameter]
+   37 | void UART_onInput(char* inputs, uint32_t size) {
+      |                         ^
+src/main.c(37): warning: unused parameter 'size' [-Wunused-parameter]
+   37 | void UART_onInput(char* inputs, uint32_t size) {
+      |                                          ^
+3 warnings generated.
+compiling main.c...
+linking...
+Program Size: Code=8184 RO-data=1012 RW-data=0 ZI-data=1904  
+FromELF: creating hex file...
+".\Objects\project.axf" - 0 Error(s), 3 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -50,7 +68,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE@5.6.0
-Build Time Elapsed:  00:00:00
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>

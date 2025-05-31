@@ -27,4 +27,7 @@ void USART2_IRQHandler(void);
 void UART_print(char *data);
 void UART_onInput(char* inputs, uint32_t size);
 
+extern volatile uint8_t * active;
+
+
 #endif

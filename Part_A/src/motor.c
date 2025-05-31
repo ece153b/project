@@ -9,7 +9,7 @@
 #include "stm32l476xx.h"
 #include "motor.h"
 
-static const uint32_t MASK = 0xFFFFFFFF;//TODO
+static const uint32_t MASK = 0xFFFFFFFF;
 static const uint32_t HalfStep[8] = {0x220,0x20,0x120,0x100,0x140,0x40,0x240,0x200};
 
 static volatile int8_t dire = 0;

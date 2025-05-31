@@ -10,12 +10,16 @@
 #include "motor.h"
 
 static uint32_t volatile step;
+static uint32_t volatile motor_ticks;
+
+#define MOTOR_DELAY 10
 
 void SysTick_Init(void) {
 	// SysTick Control & Status Register
 	SysTick->CTRL = 0; // Disable SysTick IRQ and SysTick Counter
 
-	SysTick->LOAD = 79999;
+	//SysTick->LOAD = 79999;
+	SysTick->LOAD = 7999;
 	SysTick->VAL = 0;
 	
 	// Enables SysTick exception request
@@ -28,6 +32,8 @@ void SysTick_Init(void) {
 	// If CLKSOURCE = 0, the external clock is used. The frequency of SysTick clock is the frequency of the AHB clock divided by 8.
 	// If CLKSOURCE = 1, the processor clock is used.
 	SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;		
+	//SysTick->CTRL &= ~SysTick_CTRL_CLKSOURCE_Msk;		
+
 	
 	// Enable SysTick IRQ and SysTick Timer
 	// Configure and Enable SysTick interrupt in NVIC
@@ -36,9 +42,19 @@ void SysTick_Init(void) {
 }
 
 void SysTick_Handler(void) {
-	//TODO
+	++step;
+	++motor_ticks; 
+	if(motor_ticks > MOTOR_DELAY)
+	{
+			motor_ticks = 0;
+			rotate();
+	}
 }
 
 void delay(uint32_t ms) {
-	//TODO
+	uint32_t currentTicks; // Hint: It may be helpful to keep track of what the current tick count is
+	
+	//Implement function that waits until a time specified by argument T
+	currentTicks = step; 
+	while(step - currentTicks < ms){}
 }

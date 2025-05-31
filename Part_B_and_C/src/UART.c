@@ -16,7 +16,7 @@ static volatile uint8_t data_t_0[IO_SIZE];
 static volatile uint8_t data_t_1[IO_SIZE];
 static volatile uint8_t input_size = 0;
 static volatile uint8_t pending_size = 0;
-static volatile uint8_t * active = data_t_0;
+volatile uint8_t * active = data_t_0;
 static volatile uint8_t * pending = data_t_1;
 
 #define SEL_0 1

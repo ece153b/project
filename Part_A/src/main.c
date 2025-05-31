@@ -38,7 +38,7 @@ int main(void) {
 	UART2_Init();
 	USART_Init(USART2);//TODO
 	*/
-	Init_USARTx(2);
+	Init_USARTx(1);
 	
 	printf("Program Starts.\r\n");
 	setDire(1);
@@ -59,7 +59,7 @@ int main(void) {
 		{
 			printf("%c is an invalid input, try again\n", rxByte); 
 		}
-		Init_USARTx(2);
+		Init_USARTx(1);
 	}
 }
 

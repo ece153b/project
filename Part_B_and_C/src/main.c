@@ -20,12 +20,27 @@
 
 static char buffer[IO_SIZE];
 
+void Init_USARTx(int x) {
+	if(x == 1) {
+		UART1_Init();
+		UART1_GPIO_Init();
+		USART_Init(USART1);
+	} else if(x == 2) {
+		UART2_Init();
+		UART2_GPIO_Init();
+		USART_Init(USART2);
+	} else {
+		// Do nothing...
+	}
+}
+
 void UART_onInput(char* inputs, uint32_t size) {
 	//TODO
 }
 
 int main(void) {
 	// Switch System Clock = 80 MHz
+	/*
 	System_Clock_Init(); 
 	Motor_Init();
 	SysTick_Init();
@@ -36,13 +51,23 @@ int main(void) {
 	initAcc();
 	I2C_GPIO_Init();
 	I2C_Initialization();
+	*/
+	System_Clock_Init(); 
+	Motor_Init();
+	SysTick_Init();
+	//Init_USARTx(2);
+	
 	
 	sprintf(buffer, "Program Starts.\r\n");
-	UART_print(buffer);
+	setDire(1);
+
+	//UART_print(buffer);
 	while(1) {
 		//TODO
+		/*
 		LED_Toggle();
 		delay(1000);
+		*/
 	}
 }
 
