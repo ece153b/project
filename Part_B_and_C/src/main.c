@@ -35,30 +35,45 @@ void Init_USARTx(int x) {
 }
 
 void UART_onInput(char* inputs, uint32_t size) {
-	//TODO
+	for(int i = 0; i < size; i++)
+	{
+		if(inputs[i] == '0')
+		{
+			setDire(0); 
+			UART_print("Turning clockwise\n"); 
+		}
+		else if(inputs[i] == '1')
+		{
+			setDire(1); 
+			UART_print("Turning counterclockwise\n"); 
+
+		}
+		else
+		{
+			UART_print(&inputs[i]); 
+			UART_print(" is not a valid input\n"); 
+		}
+	}
 }
 
 int main(void) {
 	// Switch System Clock = 80 MHz
-	/*
+	
 	System_Clock_Init(); 
 	Motor_Init();
 	SysTick_Init();
-	UART2_Init();
-	LED_Init();	
-	SPI1_GPIO_Init();
-	SPI1_Init();
-	initAcc();
-	I2C_GPIO_Init();
-	I2C_Initialization();
-	*/
-	System_Clock_Init(); 
-	Motor_Init();
-	SysTick_Init();
-	//Init_USARTx(2);
+	//UART2_Init();
+	//LED_Init();	
+	//SPI1_GPIO_Init();
+	//SPI1_Init();
+	//initAcc();
+	//I2C_GPIO_Init();
+	//I2C_Initialization();
 	
+	Init_USARTx(2);
+	DMA_Init_UARTx(DMA1_Channel7, USART2);
 	
-	sprintf(buffer, "Program Starts.\r\n");
+	UART_print("This program starts\n");
 	setDire(1);
 
 	//UART_print(buffer);

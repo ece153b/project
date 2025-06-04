@@ -16,36 +16,40 @@ void DMA_Init_UARTx(DMA_Channel_TypeDef * tx, USART_TypeDef * uart) {
 	//Wait 20us for DMA to finish setting up
 	delay(20);  	
 	//Disable Channel 6
-	DMA1_Channel6->CCR &= ~(DMA_CCR_EN);
+	tx->CCR &= ~(DMA_CCR_EN);
 	//Disable Memory-to-Memory mode
-	DMA1_Channel6->CCR &= ~(DMA_CCR_MEM2MEM); //CHANGED THIS
+	tx->CCR &= ~(DMA_CCR_MEM2MEM); //CHANGED THIS
 	//Set channel priority to high (10)
-	DMA1_Channel6->CCR &= ~(DMA_CCR_PL); 
-	DMA1_Channel6->CCR |= DMA_CCR_PL_1;
+	tx->CCR &= ~(DMA_CCR_PL); 
+	tx->CCR |= DMA_CCR_PL_1;
 	//Set peripheral size to 8 bit (00)
-	DMA1_Channel6->CCR &= ~(DMA_CCR_PSIZE); //CHANGED THIS
+	tx->CCR &= ~(DMA_CCR_PSIZE); //CHANGED THIS
 	//Set memory size to 8-bit (00)
-	DMA1_Channel6->CCR &= ~(DMA_CCR_MSIZE); //CHANGED THIS
+	tx->CCR &= ~(DMA_CCR_MSIZE); //CHANGED THIS
 	//Disable peripheral increment mode
-	DMA1_Channel6->CCR &= ~(DMA_CCR_PINC); 
+	tx->CCR &= ~(DMA_CCR_PINC); 
 	//Enable memory increment mode
-	DMA1_Channel6->CCR |= DMA_CCR_MINC; 
+	tx->CCR |= DMA_CCR_MINC; 
 	//Disable circular mode
-	DMA1_Channel6->CCR &= ~(DMA_CCR_CIRC); 
+	tx->CCR &= ~(DMA_CCR_CIRC); 
 	//Set data transfer direction to Peripheral-to-Memory
-	DMA1_Channel6->CCR &= ~(DMA_CCR_DIR); //CHANGED THIS
-	//Set the data source to data buffer provided in CRC.h
-	DMA1_Channel6->CMAR = (uint32_t)active; //CHANGED THIS, DOUBLE CHECK
-	//Set the data destination to the data register of the CRC block
-	DMA1_Channel6->CPAR = (uint32_t)&(CRC->DR); //TODO - change data destination
+	tx->CCR &= DMA_CCR_DIR; //CHANGED THIS
+
+
 	//Disable half transfer interrupt
-	DMA1_Channel6->CCR &= ~(DMA_CCR_HTIE); 
+	tx->CCR &= ~(DMA_CCR_HTIE); 
 	//Disable transfer error interrupt
-	DMA1_Channel6->CCR &= ~(DMA_CCR_TEIE); 
+	tx->CCR &= ~(DMA_CCR_TEIE); 
 	//Enable transfer complete interrupt
-	DMA1_Channel6->CCR |= DMA_CCR_TCIE;
+	tx->CCR |= DMA_CCR_TCIE;
 	//Set interrupt priority to 0 in NVIC
-	NVIC_SetPriority(DMA1_Channel6_IRQn, 0);
+	NVIC_SetPriority(DMA1_Channel7_IRQn, 0); //Make sure this is the right channel
 	//Enable interrupt in NVIC
-	NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+	NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+	
+	//Select USART2 on channel 7
+	DMA1_CSELR->CSELR &= ~(DMA_CSELR_C7S);
+	DMA1_CSELR->CSELR |= 1UL<<25; //double check this 
+	
+	tx->CCR |= DMA_CCR_EN;
 }
