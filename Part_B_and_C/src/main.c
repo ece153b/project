@@ -70,10 +70,13 @@ int main(void) {
 	//I2C_GPIO_Init();
 	//I2C_Initialization();
 	
-	Init_USARTx(2);
 	DMA_Init_UARTx(DMA1_Channel7, USART2);
-	
-	UART_print("This program starts\n");
+	Init_USARTx(2);
+
+	sprintf(buffer, "This program starts\n");
+	UART_print(buffer); 
+	//sprintf(buffer, "This program prints twice\n");
+	//UART_print(buffer); 
 	setDire(1);
 
 	//UART_print(buffer);

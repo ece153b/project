@@ -43,6 +43,7 @@ void SysTick_Init(void) {
 
 void SysTick_Handler(void) {
 	++step;
+	//rotate(); 
 	++motor_ticks; 
 	if(motor_ticks > MOTOR_DELAY)
 	{

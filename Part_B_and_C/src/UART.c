@@ -20,8 +20,6 @@ static volatile uint8_t pending_size = 0;
 static volatile uint8_t * active = data_t_0;
 static volatile uint8_t * pending = data_t_1;
 
-static int inputIndex = 0;
-
 #define SEL_0 1
 #define BUF_0_EMPTY 2
 #define BUF_1_EMPTY 4
@@ -37,6 +35,8 @@ void UART1_Init(void) {
 	//Select the system clock as USART1 clock source in peripheral independent clock config register
 	RCC->CCIPR &= ~(RCC_CCIPR_USART1SEL);
 	RCC->CCIPR |= RCC_CCIPR_USART1SEL_0;
+	NVIC_EnableIRQ(USART1_IRQn); 
+	NVIC_SetPriority(USART1_IRQn, 0);
 }
 
 void UART2_Init(void) {
@@ -47,9 +47,11 @@ void UART2_Init(void) {
 	RCC->CCIPR |= RCC_CCIPR_USART2SEL_0;
 	
 	//Set the data source to data buffer provided in CRC.h
-	DMA1_Channel6->CMAR = (uint32_t)active; //CHANGED THIS
+	DMA1_Channel7->CMAR = (uint32_t)active; //CHANGED THIS
 	//Set the data destination to the data register of the CRC block
-	DMA1_Channel6->CPAR = (uint32_t)&(USART1->TDR); //CHANGED THIS
+	DMA1_Channel7->CPAR = (uint32_t)&(USART2->TDR); //CHANGED THIS
+	NVIC_EnableIRQ(USART2_IRQn); 
+	NVIC_SetPriority(USART2_IRQn, 0);
 }
 
 void UART1_GPIO_Init(void) {
@@ -127,26 +129,24 @@ void USART_Init(USART_TypeDef * USARTx) {
 	// Enable Transmitter/Receiver
 	USARTx->CR1 |= USART_CR1_TE | USART_CR1_RE;
 	
+	USARTx->CR3 |= USART_CR3_DMAT; 
+
+	
 	//Enable needed interrupts (ADDED THIS)
-	USART2->CR1 |= USART_CR1_TCIE; 	//Transmission Complete
+	
+	//USART2->CR1 |= USART_CR1_TCIE; 	//Transmission Complete
 	USART2->CR1 |= USART_CR1_RXNEIE;	//Data Recieved
-	if(USARTx == USART1)
-	{
-		NVIC_EnableIRQ(USART1_IRQn); 
-	}
-	else if(USARTx == USART2)
-	{
-		NVIC_EnableIRQ(USART2_IRQn); 
-	}
+	
+
 	
 	// Enable USART
 	USARTx->CR1 |= USART_CR1_UE;
 	
-	USARTx->CR3 |= USART_CR3_DMAT; 
 }
 
 /**
- * This function accepts a string that should be sent through UART
+ * This function accepts a string that should be sent throu
+gh UART
 */
 void UART_print(char* data) {
 	//TODO
@@ -155,15 +155,24 @@ void UART_print(char* data) {
 	//Check DMA status. If DMA is ready, send data
 	if(DMA1_Channel7->CNDTR == 0) //Not printing
 	{
-		uint32_t data_size = sprintf((char*)active, "%s", data); //Transfer char array to buffer
+		uint8_t data_size = (uint8_t)strlen(data); 
+		for(int i = 0; i < data_size; i++)
+		{
+			active[i] = data[i];
+		}
+		DMA1_Channel7->CCR &= ~(DMA_CCR_EN); 
 
 		DMA1_Channel7->CMAR = (uint32_t)active;
 		DMA1_Channel7->CNDTR = data_size;		
+		//USART2->ISR |= USART_ISR_TXE;
+		DMA1_Channel7->CCR |= DMA_CCR_EN; 	//This is not reenabling the DMA for some reason	
+		USART2->CR1 |= USART_CR1_TCIE;
 	}
 	else 	//If DMA is not ready, put the data aside (just leave it in pending)
 	{
+				DMA1_Channel7->CCR |= DMA_CCR_EN; 
 				pending_size += sprintf((char*)pending[pending_size], "%s", data);
-	}
+	} 		
 }
 
 /**
@@ -172,15 +181,17 @@ void UART_print(char* data) {
 void transfer_data(char ch) {
 	//TODO
 	// Append character to input buffer.
-	if (inputIndex < IO_SIZE - 1) {
-		inputs[inputIndex] = ch;
-		inputIndex++;
-	}
-	// If the character is end-of-line, invoke UART_onInput
+	inputs[input_size] = ch;
+	input_size += 1; 
 	if(ch == '\n')
 	{
-		UART_onInput((char *)inputs, IO_SIZE);
-		inputIndex  = 0;
+		inputs[input_size] = '\0'; 
+		UART_onInput(&inputs, input_size); 
+		for(int i = 0; i < input_size; i++)
+		{
+			inputs[i] = '\0'; 
+		}
+		input_size = 0;
 	}
 }
 
@@ -190,14 +201,22 @@ void transfer_data(char ch) {
 void on_complete_transfer(void) {
 	//TODO
 	// If there are pending data to send, switch active and pending buffer, and send data
-	uint32_t* temp = active;
-	active = pending; 
-	pending = temp; 
-	
-	DMA1_Channel7->CMAR = (uint32_t)active;
-	DMA1_Channel7->CNDTR = pending_size;
-	pending_size = 0;
-	
+	if(pending_size != 0)
+	{
+		uint8_t* temp = active;
+		active = pending; 
+		pending = temp; 
+		DMA1_Channel7->CCR |= DMA_CCR_EN;
+		DMA1_Channel7->CMAR = (uint32_t)active;
+		DMA1_Channel7->CNDTR = pending_size;
+		pending_size = 0;
+		USART2->CR1 |= USART_CR1_TCIE;
+
+	}
+	else
+	{
+		USART2->CR1 &= ~USART_CR1_TCIE;
+	}
 }
 
 void USART1_IRQHandler(void){
@@ -210,15 +229,13 @@ void USART1_IRQHandler(void){
 void USART2_IRQHandler(void){
 	//TODO
 	// When receive a character, invoke transfer_data
-	if(USART2->ISR & USART_ISR_RXNE)
+	if((USART2->ISR & USART_ISR_RXNE) == USART_ISR_RXNE)
 	{
 		transfer_data((char)USART2->RDR); 
-		USART2->ISR &= ~(USART_ISR_RXNE);
 	}
-	else if(USART2->ISR & USART_ISR_TC) // When complete sending data, invoke on_complete_transfer
+	else if((USART2->ISR & USART_ISR_TC) == USART_ISR_TC) // When complete sending data, invoke on_complete_transfer
 	{
 		on_complete_transfer(); 
-		USART2->ISR &= ~(USART_ISR_TC);
-
+		USART2->ICR |= USART_ICR_TCCF; 
 	}
 }

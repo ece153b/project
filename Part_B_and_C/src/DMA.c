@@ -33,7 +33,7 @@ void DMA_Init_UARTx(DMA_Channel_TypeDef * tx, USART_TypeDef * uart) {
 	//Disable circular mode
 	tx->CCR &= ~(DMA_CCR_CIRC); 
 	//Set data transfer direction to Peripheral-to-Memory
-	tx->CCR &= DMA_CCR_DIR; //CHANGED THIS
+	tx->CCR |= DMA_CCR_DIR; //CHANGED THIS
 
 
 	//Disable half transfer interrupt
