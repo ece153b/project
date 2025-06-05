@@ -41,15 +41,16 @@ void DMA_Init_UARTx(DMA_Channel_TypeDef * tx, USART_TypeDef * uart) {
 	//Disable transfer error interrupt
 	tx->CCR &= ~(DMA_CCR_TEIE); 
 	//Enable transfer complete interrupt
-	tx->CCR |= DMA_CCR_TCIE;
+	//tx->CCR |= DMA_CCR_TCIE;
 	//Set interrupt priority to 0 in NVIC
-	NVIC_SetPriority(DMA1_Channel7_IRQn, 0); //Make sure this is the right channel
+	//NVIC_SetPriority(DMA1_Channel7_IRQn, 0); //Make sure this is the right channel
 	//Enable interrupt in NVIC
-	NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+	//NVIC_EnableIRQ(DMA1_Channel7_IRQn);
 	
-	//Select USART2 on channel 7
-	DMA1_CSELR->CSELR &= ~(DMA_CSELR_C7S);
-	DMA1_CSELR->CSELR |= 1UL<<25; //double check this 
+	//Select USART1 on channel 4
+	DMA1_CSELR->CSELR &= ~(DMA_CSELR_C4S);
+	DMA1_CSELR->CSELR |= 1UL<<13; //double check this 
 	
 	tx->CCR |= DMA_CCR_EN;
 }
+

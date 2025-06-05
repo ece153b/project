@@ -14,7 +14,33 @@
 //                        I2C GPIO Initialization
 //===============================================================================
 void I2C_GPIO_Init(void) {
-	//TODO
+	//Enable Clock for PB 8 and PB 9
+	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
+	//Choose Alternative Mode
+	GPIOB->MODER &= ~(GPIO_MODER_MODE8);
+	GPIOB->MODER |= GPIO_MODER_MODE8_1; 
+	GPIOB->MODER &= ~(GPIO_MODER_MODE9);
+	GPIOB->MODER |= GPIO_MODER_MODE9_1;
+	
+	//Choose alternate function (PC8: I2C1_SCL and PB9: I2C1_SDA)
+	GPIOB->AFR[1] &= ~(GPIO_AFRH_AFSEL8); 
+	GPIOB->AFR[1] |= GPIO_AFRH_AFSEL8_2; //Set AF for PB8 to AF4 (0100)
+	GPIOB->AFR[1] &= ~(GPIO_AFRH_AFSEL9); 
+	GPIOB->AFR[1] |= GPIO_AFRH_AFSEL9_2; //Set AF for PB9 to AF4 (0100)
+	
+	//Open Drain output type
+	GPIOB->OTYPER |= GPIO_OTYPER_OT8;
+	GPIOB->OTYPER |= GPIO_OTYPER_OT9;
+	
+	//Operate at very high speed
+	GPIOB->OSPEEDR |= GPIO_OSPEEDR_OSPEED8;
+	GPIOB->OSPEEDR |= GPIO_OSPEEDR_OSPEED9;
+
+	//Configure both GPIO pins to use pull-up registors 
+	GPIOB->PUPDR &= ~(GPIO_PUPDR_PUPD8);
+	GPIOB->PUPDR |= GPIO_PUPDR_PUPD8_0;
+	GPIOB->PUPDR &= ~(GPIO_PUPDR_PUPD9);
+	GPIOB->PUPDR |= GPIO_PUPDR_PUPD9_0;
 }
 	
 #define I2C_TIMINGR_PRESC_POS	28
@@ -28,7 +54,42 @@ void I2C_GPIO_Init(void) {
 //===============================================================================
 void I2C_Initialization(void){
 	uint32_t const OwnAddr = 0x52;
-	//TODO
+	//1a) Set up clock for I2C in RCC Reg
+	RCC->APB1ENR1 |= RCC_APB1ENR1_I2C1EN;
+	//1b) Set the system clock for I2C1 in peripheral clock enable register
+	RCC->CCIPR &= ~(RCC_CCIPR_I2C1SEL);
+	RCC->CCIPR |= RCC_CCIPR_I2C1SEL_0;
+	//1c) Reset IC21 by setting bits in peripheral reset register.	Then clear bits so I2C doesn't remain in reset state
+	RCC->APB1RSTR1 |= RCC_APB1RSTR1_I2C1RST;
+	RCC->APB1RSTR1 &= ~(RCC_APB1RSTR1_I2C1RST);
+	
+	//2a) Enable analog noise filter, disable digital noise filter, enable error interrupts
+	I2C1->CR1 &= ~(I2C_CR1_PE); 				//Disable I2C 		
+	I2C1->CR1 &= ~(I2C_CR1_ANFOFF); 		//Enable analog noise filter
+	I2C1->CR1 &= ~(I2C_CR1_DNF);				//Disable digital noise filter
+	I2C1->CR1 |= I2C_CR1_ERRIE; 				//Enable error interrupts
+	I2C1->CR1 &= ~(I2C_CR1_NOSTRETCH); 	//Enable clock stretching
+	I2C1->CR2 &= ~(I2C_CR2_ADD10); 			//Set master to operate in 7-bit addressing mode
+	I2C1->CR2 |= I2C_CR2_AUTOEND;				//Enable automatic end mode
+	I2C1->CR2 |= I2C_CR2_NACK; 					//Enable NACK generation
+	
+	//2b) Set the values in the timing register
+	I2C1->TIMINGR |= (7 << I2C_TIMINGR_PRESC_POS); 	//Prescaler
+	I2C1->TIMINGR |= (20 << I2C_TIMINGR_SCLDEL_POS); //SCLDEL
+	I2C1->TIMINGR |= (15 << I2C_TIMINGR_SDADEL_POS); //SCADEL
+	I2C1->TIMINGR |= (50 << I2C_TIMINGR_SCLH_POS); //SCLH
+	I2C1->TIMINGR |= (60 << I2C_TIMINGR_SCLL_POS); //SCLL
+	
+	//2c) Set your own address
+	I2C1->OAR1 &= ~(I2C_OAR1_OA1EN); 		//Disable Own Address 1
+	I2C1->OAR2 &= ~(I2C_OAR2_OA2EN); 		//Disable Own Address 2
+	I2C1->OAR1 &= ~(I2C_OAR1_OA1MODE); 	//Set address to 7-bit mode
+	I2C1->OAR1 |= (OwnAddr); 						//Write Own Address - DOUBLE CHECK THIS, OA1 is the bottom memory addresses so this should work
+	I2C1->OAR1 |= I2C_OAR1_OA1EN; 			//Enable Own Address 1
+
+	//2d) Reenable I2C
+	I2C1->CR1 |= I2C_CR1_PE; 						//Enable I2C 		
+
 }
 
 //===============================================================================

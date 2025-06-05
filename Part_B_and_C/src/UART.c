@@ -11,7 +11,7 @@
 #include "DMA.h"
 #include <stdio.h>
 #include <string.h>
-static volatile DMA_Channel_TypeDef * tx;
+static volatile DMA_Channel_TypeDef * tx = DMA1_Channel4;
 static volatile char inputs[IO_SIZE];
 static volatile uint8_t data_t_0[IO_SIZE];
 static volatile uint8_t data_t_1[IO_SIZE];
@@ -35,8 +35,11 @@ void UART1_Init(void) {
 	//Select the system clock as USART1 clock source in peripheral independent clock config register
 	RCC->CCIPR &= ~(RCC_CCIPR_USART1SEL);
 	RCC->CCIPR |= RCC_CCIPR_USART1SEL_0;
-	NVIC_EnableIRQ(USART1_IRQn); 
-	NVIC_SetPriority(USART1_IRQn, 0);
+
+	//Set the data source to data buffer provided in CRC.h
+	DMA1_Channel4->CMAR = (uint32_t)active; //CHANGED THIS
+	//Set the data destination to the data register of the CRC block
+	DMA1_Channel4->CPAR = (uint32_t)&(USART1->TDR); //CHANGED THIS
 }
 
 void UART2_Init(void) {
@@ -50,8 +53,7 @@ void UART2_Init(void) {
 	DMA1_Channel7->CMAR = (uint32_t)active; //CHANGED THIS
 	//Set the data destination to the data register of the CRC block
 	DMA1_Channel7->CPAR = (uint32_t)&(USART2->TDR); //CHANGED THIS
-	NVIC_EnableIRQ(USART2_IRQn); 
-	NVIC_SetPriority(USART2_IRQn, 0);
+
 }
 
 void UART1_GPIO_Init(void) {
@@ -133,10 +135,8 @@ void USART_Init(USART_TypeDef * USARTx) {
 
 	
 	//Enable needed interrupts (ADDED THIS)
-	
-	//USART2->CR1 |= USART_CR1_TCIE; 	//Transmission Complete
-	USART2->CR1 |= USART_CR1_RXNEIE;	//Data Recieved
-	
+	USARTx->CR1 |= USART_CR1_RXNEIE; //Data Recieved
+	USARTx->CR1 |= USART_CR1_TCIE; 	//Transmission Complete
 
 	
 	// Enable USART
@@ -153,25 +153,28 @@ void UART_print(char* data) {
 
 	
 	//Check DMA status. If DMA is ready, send data
-	if(DMA1_Channel7->CNDTR == 0) //Not printing
+	if(DMA1_Channel4->CNDTR == 0) //Not printing
 	{
 		uint8_t data_size = (uint8_t)strlen(data); 
 		for(int i = 0; i < data_size; i++)
 		{
 			active[i] = data[i];
 		}
-		DMA1_Channel7->CCR &= ~(DMA_CCR_EN); 
+		tx->CCR &= ~(DMA_CCR_EN); 
 
-		DMA1_Channel7->CMAR = (uint32_t)active;
-		DMA1_Channel7->CNDTR = data_size;		
-		//USART2->ISR |= USART_ISR_TXE;
-		DMA1_Channel7->CCR |= DMA_CCR_EN; 	//This is not reenabling the DMA for some reason	
-		USART2->CR1 |= USART_CR1_TCIE;
+		tx->CMAR = (uint32_t)active;
+		tx->CNDTR = data_size;		
+		USART1->ISR |= USART_ISR_TXE;
+		tx->CCR |= DMA_CCR_EN; 	//This is not reenabling the DMA for some reason	
 	}
 	else 	//If DMA is not ready, put the data aside (just leave it in pending)
 	{
-				DMA1_Channel7->CCR |= DMA_CCR_EN; 
-				pending_size += sprintf((char*)pending[pending_size], "%s", data);
+			uint8_t data_size = (uint8_t)strlen(data); 
+			for(int i = 0; i < data_size; i++)
+			{
+				pending[pending_size+i] = data[i];
+			}
+			pending_size += data_size;
 	} 		
 }
 
@@ -206,24 +209,30 @@ void on_complete_transfer(void) {
 		uint8_t* temp = active;
 		active = pending; 
 		pending = temp; 
-		DMA1_Channel7->CCR |= DMA_CCR_EN;
-		DMA1_Channel7->CMAR = (uint32_t)active;
-		DMA1_Channel7->CNDTR = pending_size;
+		tx->CCR &= ~DMA_CCR_EN;
+		tx->CMAR = (uint32_t)active;
+		tx->CNDTR = pending_size;
 		pending_size = 0;
-		USART2->CR1 |= USART_CR1_TCIE;
+		tx->CCR |= DMA_CCR_EN;
 
-	}
-	else
-	{
-		USART2->CR1 &= ~USART_CR1_TCIE;
+
 	}
 }
 
 void USART1_IRQHandler(void){
 	//TODO
 	// When receive a character, invoke transfer_data
-	
-	// When complete sending data, invoke on_complete_transfer
+	if((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE)
+	{
+		transfer_data((char)USART1->RDR); 
+	}
+	if((USART1->ISR & USART_ISR_TC) == USART_ISR_TC) // When complete sending data, invoke on_complete_transfer
+	{
+		DMA1_Channel4->CCR &= ~(DMA_CCR_EN); 
+
+		on_complete_transfer(); 
+		USART1->ICR |= USART_ICR_TCCF; 
+	}
 }
 
 void USART2_IRQHandler(void){
@@ -233,9 +242,13 @@ void USART2_IRQHandler(void){
 	{
 		transfer_data((char)USART2->RDR); 
 	}
-	else if((USART2->ISR & USART_ISR_TC) == USART_ISR_TC) // When complete sending data, invoke on_complete_transfer
+	if((USART2->ISR & USART_ISR_TC) == USART_ISR_TC) // When complete sending data, invoke on_complete_transfer
 	{
+		DMA1_Channel7->CCR &= ~(DMA_CCR_EN); 
+
 		on_complete_transfer(); 
 		USART2->ICR |= USART_ICR_TCCF; 
 	}
 }
+
+
