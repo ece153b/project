@@ -65,13 +65,17 @@ void rotate(void) {
 				stepIndex = 0;
 			}
 	}
-	else
+	else if(dire == 0)
 	{
 			stepIndex--;
 			if(stepIndex < 0)
 			{
 				stepIndex = 7;
 			}
+	}
+	else
+	{
+		//Do nothing
 	}
 }
 

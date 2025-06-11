@@ -23,6 +23,11 @@ double x, y, z;
 uint8_t SecondaryAddress;
 uint8_t Data_Send;
 uint8_t Data_Receive;
+static int8_t doorStatus = 0; //0-closing, 1-opening, 2-closed, 3-opened
+int tempState = 0; //0-cold, 1-hot
+int tempPrev = 0;
+int messageDelay = 0; 
+int commandDelay = 0;
 
 void Init_USARTx(int x) {
 	if(x == 1) {
@@ -55,6 +60,20 @@ void UART_onInput(char* inputs, uint32_t size) {
 			setDire(1); 
 			UART_print("Turning clockwise\n"); 
 
+		}
+		else if(inputs[0] == 'o' && inputs[1] == 'p' && inputs[2] == 'e' && inputs[3] == 'n')
+		{
+			doorStatus = 1; 
+			UART_print("Opening door\n");
+			commandDelay = 0;
+			break;
+		}
+		else if(inputs[0] == 'c' && inputs[1] == 'l' && inputs[2] == 'o' && inputs[3] == 's' && inputs[4] == 'e')
+		{
+			doorStatus = 0; 
+			UART_print("Closing door\n"); 
+			commandDelay = 1; 
+			break;
 		}
 		else if(inputs[i] == '\n')
 		{
@@ -101,9 +120,71 @@ int main(void) {
 		I2C_SendData(I2C1, SecondaryAddress, &Data_Send, 1); 
 		I2C_ReceiveData(I2C1, SecondaryAddress, &Data_Receive, 1); 
 		
+
+		
+		if(commandDelay < 20)
+		{
+			commandDelay++;
+		}
+		else
+		{
+			//Temperature cross threshold value 25C, open garage door
+			if (Data_Receive > 24 && doorStatus != 3 && doorStatus != 1) {
+				sprintf(buffer, "Temperature too high. Door opening.\n");
+				UART_print(buffer);
+				doorStatus = 1;			
+				tempState = 1; 
+			}
+			else if (Data_Receive < 22 && doorStatus != 2 && doorStatus != 0) { 		//When temp drop below 15C, close garage door
+				sprintf(buffer, "Temperature too low. Door closing. \n");
+				UART_print(buffer);
+				doorStatus = 0; 
+				tempState = 0;
+			}
+			
+			if(tempState == 0 && (doorStatus == 1 || doorStatus == 3))
+			{
+				doorStatus = 0; 
+			}
+			
+			if(tempState == 1 && (doorStatus == 0 || doorStatus == 2))
+			{
+				doorStatus = 1; 
+			}
+		}
+
+			if(x < -1.05 && doorStatus != 1 && doorStatus != 2)
+			{
+				//sprintf(buffer, "Closed, halting\n");
+				UART_print(buffer);
+				doorStatus = 2;
+			}
+			else if(x > -0.6 && doorStatus != 0 && doorStatus != 3)
+			{
+				//sprintf(buffer, "Open, halting\n");
+				UART_print(buffer);
+				doorStatus = 3; 
+			}
+		
+		setDire(doorStatus); 
+		if(messageDelay == 5)
+		{
+			messageDelay = 0; 
+			//sprintf(buffer, "Acceleration: %.2f, %.2f, %.2f\r\n, Temperature: %d\n", x, y, z, Data_Receive); 
+			UART_print(buffer); 
+			if(Data_Receive != tempPrev)
+			{
+				sprintf(buffer, "Temperature: %d\n", Data_Receive); 
+				UART_print(buffer);
+			}
+			tempPrev = Data_Receive;
+		}
+		else
+		{
+			messageDelay++; 
+		}
 		//sprintf(buffer, "Acceleration: %.2f, %.2f, %.2f\r\n", x, y, z); 
-		sprintf(buffer, "Acceleration: %.2f, %.2f, %.2f\r\n, Temperature: %d\n", x, y, z, Data_Receive); 
-		UART_print(buffer); 
+
 		delay(2000); 
 	}
 }

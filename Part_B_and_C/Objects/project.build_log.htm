@@ -22,29 +22,53 @@ Dialog DLL:      TCM.DLL V1.56.4.0
  
 <h2>Project:</h2>
 C:\Users\adenjo\Downloads\project-main\project-main\Part_B_and_C\project.uvprojx
-Project File Date:  06/05/2025
+Project File Date:  06/11/2025
 
 <h2>Output:</h2>
 *** Using Compiler 'V6.21', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'Target 1'
-src/main.c(27): warning: declaration shadows a variable in the global scope [-Wshadow]
-   27 | void Init_USARTx(int x) {
+src/main.c(27): warning: no previous extern declaration for non-static variable 'tempState' [-Wmissing-variable-declarations]
+   27 | int tempState = 0; //0-cold, 1-hot
+      |     ^
+src/main.c(27): note: declare 'static' if the variable is not intended to be used outside of this translation unit
+   27 | int tempState = 0; //0-cold, 1-hot
+      | ^
+src/main.c(28): warning: no previous extern declaration for non-static variable 'tempPrev' [-Wmissing-variable-declarations]
+   28 | int tempPrev = 0;
+      |     ^
+src/main.c(28): note: declare 'static' if the variable is not intended to be used outside of this translation unit
+   28 | int tempPrev = 0;
+      | ^
+src/main.c(29): warning: no previous extern declaration for non-static variable 'messageDelay' [-Wmissing-variable-declarations]
+   29 | int messageDelay = 0; 
+      |     ^
+src/main.c(29): note: declare 'static' if the variable is not intended to be used outside of this translation unit
+   29 | int messageDelay = 0; 
+      | ^
+src/main.c(30): warning: no previous extern declaration for non-static variable 'commandDelay' [-Wmissing-variable-declarations]
+   30 | int commandDelay = 0;
+      |     ^
+src/main.c(30): note: declare 'static' if the variable is not intended to be used outside of this translation unit
+   30 | int commandDelay = 0;
+      | ^
+src/main.c(32): warning: declaration shadows a variable in the global scope [-Wshadow]
+   32 | void Init_USARTx(int x) {
       |                      ^
 src/main.c(22): note: previous declaration is here
    22 | double x, y, z; 
       |        ^
-src/main.c(27): warning: no previous prototype for function 'Init_USARTx' [-Wmissing-prototypes]
-   27 | void Init_USARTx(int x) {
+src/main.c(32): warning: no previous prototype for function 'Init_USARTx' [-Wmissing-prototypes]
+   32 | void Init_USARTx(int x) {
       |      ^
-src/main.c(27): note: declare 'static' if the function is not intended to be used outside of this translation unit
-   27 | void Init_USARTx(int x) {
+src/main.c(32): note: declare 'static' if the function is not intended to be used outside of this translation unit
+   32 | void Init_USARTx(int x) {
       | ^
       | static 
-src/main.c(46): warning: comparison of integers of different signs: 'int' and 'uint32_t' (aka 'unsigned int') [-Wsign-compare]
-   46 |         for(int i = 0; i < size; i++)
+src/main.c(51): warning: comparison of integers of different signs: 'int' and 'uint32_t' (aka 'unsigned int') [-Wsign-compare]
+   51 |         for(int i = 0; i < size; i++)
       |                        ~ ^ ~~~~
-src/main.c(97): warning: binary integer literals are a GNU extension [-Wgnu-binary-literal]
-   97 |                 SecondaryAddress = 0b1001000 << 1; // STUB - Fill in correct address 
+src/main.c(116): warning: binary integer literals are a GNU extension [-Wgnu-binary-literal]
+  116 |                 SecondaryAddress = 0b1001000 << 1; // STUB - Fill in correct address 
       |                                    ^
 src/main.c(22): warning: no previous extern declaration for non-static variable 'x' [-Wmissing-variable-declarations]
    22 | double x, y, z; 
@@ -82,24 +106,45 @@ src/main.c(25): warning: no previous extern declaration for non-static variable 
 src/main.c(25): note: declare 'static' if the variable is not intended to be used outside of this translation unit
    25 | uint8_t Data_Receive;
       | ^
-src/main.c(48): warning: unsafe buffer access [-Wunsafe-buffer-usage]
-   48 |                 if(inputs[i] == '0')
-      |                    ^~~~~~
 src/main.c(53): warning: unsafe buffer access [-Wunsafe-buffer-usage]
-   53 |                 else if(inputs[i] == '1')
+   53 |                 if(inputs[i] == '0')
+      |                    ^~~~~~
+src/main.c(58): warning: unsafe buffer access [-Wunsafe-buffer-usage]
+   58 |                 else if(inputs[i] == '1')
       |                         ^~~~~~
-src/main.c(59): warning: unsafe buffer access [-Wunsafe-buffer-usage]
-   59 |                 else if(inputs[i] == '\n')
+src/main.c(64): warning: unsafe buffer access [-Wunsafe-buffer-usage]
+   64 |                 else if(inputs[0] == 'o' && inputs[1] == 'p' && inputs[2] == 'e' && inputs[3] == 'n')
+      |                                             ^~~~~~
+src/main.c(64): warning: unsafe buffer access [-Wunsafe-buffer-usage]
+   64 |                 else if(inputs[0] == 'o' && inputs[1] == 'p' && inputs[2] == 'e' && inputs[3] == 'n')
+      |                                                                 ^~~~~~
+src/main.c(64): warning: unsafe buffer access [-Wunsafe-buffer-usage]
+   64 |                 else if(inputs[0] == 'o' && inputs[1] == 'p' && inputs[2] == 'e' && inputs[3] == 'n')
+      |                                                                                     ^~~~~~
+src/main.c(71): warning: unsafe buffer access [-Wunsafe-buffer-usage]
+   71 |                 else if(inputs[0] == 'c' && inputs[1] == 'l' && inputs[2] == 'o' && inputs[3] == 's' && inputs[4] == 'e')
+      |                                             ^~~~~~
+src/main.c(71): warning: unsafe buffer access [-Wunsafe-buffer-usage]
+   71 |                 else if(inputs[0] == 'c' && inputs[1] == 'l' && inputs[2] == 'o' && inputs[3] == 's' && inputs[4] == 'e')
+      |                                                                 ^~~~~~
+src/main.c(71): warning: unsafe buffer access [-Wunsafe-buffer-usage]
+   71 |                 else if(inputs[0] == 'c' && inputs[1] == 'l' && inputs[2] == 'o' && inputs[3] == 's' && inputs[4] == 'e')
+      |                                                                                     ^~~~~~
+src/main.c(71): warning: unsafe buffer access [-Wunsafe-buffer-usage]
+   71 |                 else if(inputs[0] == 'c' && inputs[1] == 'l' && inputs[2] == 'o' && inputs[3] == 's' && inputs[4] == 'e')
+      |                                                                                                         ^~~~~~
+src/main.c(78): warning: unsafe buffer access [-Wunsafe-buffer-usage]
+   78 |                 else if(inputs[i] == '\n')
       |                         ^~~~~~
-src/main.c(65): warning: unsafe buffer access [-Wunsafe-buffer-usage]
-   65 |                         UART_print(&inputs[i]); 
+src/main.c(84): warning: unsafe buffer access [-Wunsafe-buffer-usage]
+   84 |                         UART_print(&inputs[i]); 
       |                                     ^~~~~~
-14 warnings generated.
+25 warnings generated.
 compiling main.c...
 linking...
-Program Size: Code=13172 RO-data=1152 RW-data=12 ZI-data=2716  
+Program Size: Code=14496 RO-data=1220 RW-data=12 ZI-data=2732  
 FromELF: creating hex file...
-".\Objects\project.axf" - 0 Error(s), 14 Warning(s).
+".\Objects\project.axf" - 0 Error(s), 25 Warning(s).
 
 <h2>Software Packages used:</h2>
 
